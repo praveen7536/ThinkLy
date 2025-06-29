@@ -10,7 +10,6 @@ import {
   ListItemIcon
 } from '@mui/material';
 import { 
-  SmartToy,
   Psychology,
   AutoAwesome,
   Check

@@ -31,7 +31,6 @@ const Message = ({ message, isDarkMode, modelName }) => {
   };
 
   const isUser = message.role === 'user';
-  const isError = message.role === 'error';
 
   // Function to detect and extract code blocks
   const extractCodeBlocks = (content) => {
