@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { 
   Typography, 
   Box, 
@@ -12,10 +11,9 @@ import {
   CheckCircle
 } from '@mui/icons-material';
 import { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { TypeAnimation } from 'react-type-animation';
 
 const Message = ({ message, isDarkMode, modelName }) => {
   const [copiedCode, setCopiedCode] = useState({});
@@ -140,186 +138,6 @@ const Message = ({ message, isDarkMode, modelName }) => {
     return icons[language.toLowerCase()] || language.toUpperCase();
   };
 
-  const codeBlockVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.3, delay: 0.1 }
-    }
-  };
-
-  // Custom components for ReactMarkdown
-  const markdownComponents = {
-    h1: ({ children }) => (
-      <Typography variant="h4" component="h1" sx={{ 
-        fontWeight: 700, 
-        mb: 2, 
-        mt: 3,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    h2: ({ children }) => (
-      <Typography variant="h5" component="h2" sx={{ 
-        fontWeight: 600, 
-        mb: 1.5, 
-        mt: 2.5,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    h3: ({ children }) => (
-      <Typography variant="h6" component="h3" sx={{ 
-        fontWeight: 600, 
-        mb: 1, 
-        mt: 2,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    h4: ({ children }) => (
-      <Typography variant="subtitle1" component="h4" sx={{ 
-        fontWeight: 600, 
-        mb: 1, 
-        mt: 1.5,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    h5: ({ children }) => (
-      <Typography variant="subtitle2" component="h5" sx={{ 
-        fontWeight: 600, 
-        mb: 0.5, 
-        mt: 1,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    h6: ({ children }) => (
-      <Typography variant="body1" component="h6" sx={{ 
-        fontWeight: 600, 
-        mb: 0.5, 
-        mt: 1,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    p: ({ children }) => (
-      <Typography component="p" sx={{ 
-        mb: 1.5, 
-        lineHeight: 1.6,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    strong: ({ children }) => (
-      <Box component="span" sx={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#222' }}>
-        {children}
-      </Box>
-    ),
-    em: ({ children }) => (
-      <Box component="span" sx={{ fontStyle: 'italic', color: isDarkMode ? '#fff' : '#222' }}>
-        {children}
-      </Box>
-    ),
-    ul: ({ children }) => (
-      <Box component="ul" sx={{ 
-        mb: 1.5, 
-        pl: 3,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Box>
-    ),
-    ol: ({ children }) => (
-      <Box component="ol" sx={{ 
-        mb: 1.5, 
-        pl: 3,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Box>
-    ),
-    li: ({ children }) => (
-      <Typography component="li" sx={{ 
-        mb: 0.5, 
-        lineHeight: 1.6,
-        color: isDarkMode ? '#fff' : '#222'
-      }}>
-        {children}
-      </Typography>
-    ),
-    blockquote: ({ children }) => (
-      <Box
-        component="blockquote"
-        sx={{
-          borderLeft: `4px solid ${isDarkMode ? '#4285f4' : '#1976d2'}`,
-          pl: 2,
-          ml: 0,
-          mr: 0,
-          mb: 1.5,
-          background: isDarkMode ? 'rgba(66, 133, 244, 0.1)' : 'rgba(25, 118, 210, 0.1)',
-          borderRadius: 1,
-          py: 1
-        }}
-      >
-        {children}
-      </Box>
-    ),
-    a: ({ href, children }) => (
-      <Box
-        component="a"
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{
-          color: isDarkMode ? '#4285f4' : '#1976d2',
-          textDecoration: 'none',
-          '&:hover': {
-            textDecoration: 'underline'
-          }
-        }}
-      >
-        {children}
-      </Box>
-    ),
-    code: ({ children, className }) => {
-      // Handle inline code
-      if (!className) {
-        return (
-          <Box
-            component="code"
-            sx={{
-              background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-              color: isDarkMode ? '#e6f3ff' : '#d63384',
-              padding: '2px 6px',
-              borderRadius: 1,
-              fontSize: '0.9em',
-              fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`
-            }}
-          >
-            {children}
-          </Box>
-        );
-      }
-      // For code blocks, return null as we handle them separately
-      return null;
-    },
-    pre: ({ children }) => {
-      // Return null for pre tags as we handle code blocks separately
-      return null;
-    }
-  };
-
   const contentParts = extractCodeBlocks(message.content);
 
   // ChatGPT-style bubble
@@ -328,184 +146,473 @@ const Message = ({ message, isDarkMode, modelName }) => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: isUser ? 'flex-end' : 'flex-start',
-        mb: 2,
+        gap: 2,
+        mb: 3,
+        animation: 'fadeInUp 0.5s ease-out'
       }}
     >
+      {/* Enhanced Header */}
       <Box
         sx={{
-          background: isUser
-            ? (isDarkMode ? '#23272f' : '#f4f6fa')
-            : (isDarkMode ? '#282c34' : '#e9eaf0'),
-          color: isDarkMode ? '#fff' : '#222',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          mb: 1.5
+        }}
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+            fontWeight: 700,
+            color: isUser ? '#000' : '#fff',
+            background: isUser 
+              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+            border: `2px solid ${isUser ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.2)'}`,
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: -2,
+              left: -2,
+              right: -2,
+              bottom: -2,
+              background: isUser 
+                ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                : 'linear-gradient(135deg, #f093fb, #f5576c)',
+              borderRadius: '50%',
+              zIndex: -1,
+              opacity: 0.3
+            }
+          }}
+        >
+          {isUser ? 'U' : 'AI'}
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              color: isUser ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.9)',
+              fontSize: '1rem',
+              letterSpacing: '-0.2px'
+            }}
+          >
+            {isUser ? 'You' : modelName || 'AI Assistant'}
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: isUser ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+              fontSize: '0.75rem',
+              fontWeight: 400
+            }}
+          >
+            {new Date(message.timestamp).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Enhanced Content */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          background: isUser 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${isUser ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'}`,
           borderRadius: 3,
-          p: 2,
-          maxWidth: '75%',
-          boxShadow: 1,
-          fontSize: 16,
-          whiteSpace: 'pre-line',
+          p: 3,
+          boxShadow: isDarkMode 
+            ? '0 8px 32px rgba(0, 0, 0, 0.2)' 
+            : '0 8px 32px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: isDarkMode 
+              ? '0 12px 40px rgba(0, 0, 0, 0.3)' 
+              : '0 12px 40px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(-2px)'
+          }
         }}
       >
         {contentParts.map((part, index) => {
-          if (part.type === 'text') {
+          if (part.type === 'code') {
+            return (
+              <Box
+                key={index}
+                sx={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  background: isDarkMode ? '#1a1a2e' : '#f8fafc',
+                  border: `2px solid ${isDarkMode ? '#2d2d2d' : '#e9ecef'}`,
+                  boxShadow: isDarkMode 
+                    ? '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                    : '0 12px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                  mb: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: isDarkMode 
+                      ? '0 16px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                      : '0 16px 50px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+                  }
+                }}
+              >
+                {/* Enhanced Code Header */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    px: 3,
+                    py: 2,
+                    background: isDarkMode 
+                      ? 'linear-gradient(135deg, #2d2d2d 0%, #404040 100%)' 
+                      : 'linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%)',
+                    borderBottom: `2px solid ${isDarkMode ? '#404040' : '#dee2e6'}`,
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '2px',
+                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 0.5
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          background: '#ef4444',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          background: '#f59e0b',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          background: '#10b981',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                        }}
+                      />
+                    </Box>
+                    <Chip
+                      label={getLanguageIcon(part.language)}
+                      size="small"
+                      sx={{
+                        height: 24,
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        background: isDarkMode ? '#404040' : '#fff',
+                        color: isDarkMode ? '#fff' : '#333',
+                        border: `2px solid ${isDarkMode ? '#555' : '#ddd'}`,
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                        '& .MuiChip-label': {
+                          px: 1.5
+                        }
+                      }}
+                    />
+                  </Box>
+                  <Tooltip title={copiedCode[index] ? "Copied!" : "Copy code"}>
+                    <IconButton
+                      size="small"
+                      onClick={() => copyCodeToClipboard(part.content, index)}
+                      sx={{
+                        color: copiedCode[index] ? '#4caf50' : (isDarkMode ? '#fff' : '#666'),
+                        background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                        border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                        '&:hover': {
+                          background: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+                          transform: 'scale(1.1)'
+                        },
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {copiedCode[index] ? <CheckCircle fontSize="small" /> : <ContentCopy fontSize="small" />}
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+
+                {/* Enhanced Code Content with Typewriter Effect */}
+                <Box sx={{ p: 0, position: 'relative' }}>
+                  <TypeAnimation
+                    sequence={[part.content]}
+                    speed={50}
+                    cursor={false}
+                    style={{
+                      display: 'block',
+                      padding: '20px',
+                      margin: 0,
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      fontFamily: '"Fira Code", "Consolas", "Monaco", "Courier New", monospace',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      background: 'transparent',
+                      color: isDarkMode ? '#e5e7eb' : '#1f2937'
+                    }}
+                    wrapper="pre"
+                  />
+                </Box>
+              </Box>
+            );
+          } else {
             return (
               <Box key={index}>
-                <ReactMarkdown 
+                <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
-                  components={markdownComponents}
+                  components={{
+                    h1: ({ children }) => (
+                      <Typography variant="h4" component="h1" sx={{ 
+                        fontWeight: 700, 
+                        mb: 2, 
+                        mt: 3,
+                        color: 'inherit',
+                        fontSize: '1.5rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    h2: ({ children }) => (
+                      <Typography variant="h5" component="h2" sx={{ 
+                        fontWeight: 600, 
+                        mb: 1.5, 
+                        mt: 2.5,
+                        color: 'inherit',
+                        fontSize: '1.3rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    h3: ({ children }) => (
+                      <Typography variant="h6" component="h3" sx={{ 
+                        fontWeight: 600, 
+                        mb: 1, 
+                        mt: 2,
+                        color: 'inherit',
+                        fontSize: '1.1rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    h4: ({ children }) => (
+                      <Typography variant="subtitle1" component="h4" sx={{ 
+                        fontWeight: 600, 
+                        mb: 1, 
+                        mt: 1.5,
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    h5: ({ children }) => (
+                      <Typography variant="subtitle2" component="h5" sx={{ 
+                        fontWeight: 600, 
+                        mb: 0.5, 
+                        mt: 1,
+                        color: 'inherit',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    h6: ({ children }) => (
+                      <Typography variant="body1" component="h6" sx={{ 
+                        fontWeight: 600, 
+                        mb: 0.5, 
+                        mt: 1,
+                        color: 'inherit',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.3
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    p: ({ children }) => (
+                      <Typography component="p" sx={{ 
+                        mb: 1.5, 
+                        lineHeight: 1.6,
+                        color: 'inherit',
+                        fontSize: 'inherit',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word'
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    strong: ({ children }) => (
+                      <Box component="span" sx={{ 
+                        fontWeight: 700, 
+                        color: 'inherit'
+                      }}>
+                        {children}
+                      </Box>
+                    ),
+                    em: ({ children }) => (
+                      <Box component="span" sx={{ 
+                        fontStyle: 'italic', 
+                        color: 'inherit'
+                      }}>
+                        {children}
+                      </Box>
+                    ),
+                    ul: ({ children }) => (
+                      <Box component="ul" sx={{ 
+                        mb: 1.5, 
+                        pl: 2.5,
+                        color: 'inherit',
+                        '& li': {
+                          mb: 0.5,
+                          lineHeight: 1.6
+                        }
+                      }}>
+                        {children}
+                      </Box>
+                    ),
+                    ol: ({ children }) => (
+                      <Box component="ol" sx={{ 
+                        mb: 1.5, 
+                        pl: 2.5,
+                        color: 'inherit',
+                        '& li': {
+                          mb: 0.5,
+                          lineHeight: 1.6
+                        }
+                      }}>
+                        {children}
+                      </Box>
+                    ),
+                    li: ({ children }) => (
+                      <Typography component="li" sx={{ 
+                        mb: 0.5, 
+                        lineHeight: 1.6,
+                        color: 'inherit',
+                        fontSize: 'inherit'
+                      }}>
+                        {children}
+                      </Typography>
+                    ),
+                    blockquote: ({ children }) => (
+                      <Box
+                        component="blockquote"
+                        sx={{
+                          borderLeft: `3px solid ${isUser ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)'}`,
+                          pl: 2,
+                          ml: 0,
+                          mr: 0,
+                          mb: 1.5,
+                          background: isUser ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                          borderRadius: '4px',
+                          py: 1,
+                          fontStyle: 'italic'
+                        }}
+                      >
+                        {children}
+                      </Box>
+                    ),
+                    a: ({ href, children }) => (
+                      <Box
+                        component="a"
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          color: isUser ? 'rgba(255, 255, 255, 0.9)' : (isDarkMode ? '#60a5fa' : '#3b82f6'),
+                          textDecoration: 'underline',
+                          textDecorationColor: isUser ? 'rgba(255, 255, 255, 0.5)' : 'rgba(59, 130, 246, 0.5)',
+                          '&:hover': {
+                            textDecorationColor: isUser ? 'rgba(255, 255, 255, 0.8)' : 'rgba(59, 130, 246, 0.8)'
+                          }
+                        }}
+                      >
+                        {children}
+                      </Box>
+                    ),
+                    code: ({ children, className }) => {
+                      // Handle inline code
+                      if (!className) {
+                        return (
+                          <Box
+                            component="code"
+                            sx={{
+                              background: isUser 
+                                ? 'rgba(255, 255, 255, 0.15)' 
+                                : (isDarkMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.08)'),
+                              color: 'inherit',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '0.9em',
+                              fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                              display: 'inline-block',
+                              wordBreak: 'break-word'
+                            }}
+                          >
+                            {children}
+                          </Box>
+                        );
+                      }
+                      // For code blocks, return null as we handle them separately
+                      return null;
+                    },
+                    pre: ({ children }) => {
+                      // Return null for pre tags as we handle code blocks separately
+                      return null;
+                    }
+                  }}
                 >
                   {part.content}
                 </ReactMarkdown>
               </Box>
             );
           }
-
-          if (part.type === 'inlineCode') {
-            return (
-              <Box
-                key={index}
-                component="code"
-                sx={{
-                  background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                  color: isDarkMode ? '#e6f3ff' : '#d63384',
-                  padding: '2px 6px',
-                  borderRadius: 1,
-                  fontSize: '0.9em',
-                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                  border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`
-                }}
-              >
-                {part.content}
-              </Box>
-            );
-          }
-
-          if (part.type === 'code') {
-            return (
-              <motion.div
-                key={index}
-                variants={codeBlockVariants}
-                initial="hidden"
-                animate="visible"
-                style={{ margin: '12px 0' }}
-              >
-                <Box
-                  sx={{
-                    background: isDarkMode ? '#1e1e1e' : '#f8f9fa',
-                    border: `1px solid ${isDarkMode ? '#404040' : '#e1e4e8'}`,
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    boxShadow: isDarkMode 
-                      ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
-                      : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                  }}
-                >
-                  {/* Code Header */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: isDarkMode ? '#2d2d30' : '#f1f3f4',
-                      borderBottom: `1px solid ${isDarkMode ? '#404040' : '#e1e4e8'}`,
-                      px: 2,
-                      py: 1,
-                      minHeight: 36
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          background: '#ff5f56',
-                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          background: '#ffbd2e',
-                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          background: '#27ca3f',
-                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip
-                        label={getLanguageIcon(part.language)}
-                        size="small"
-                        sx={{
-                          background: isDarkMode ? '#404040' : '#e1e4e8',
-                          color: isDarkMode ? '#fff' : '#586069',
-                          fontSize: '0.75rem',
-                          height: 20,
-                          '& .MuiChip-label': {
-                            px: 1
-                          }
-                        }}
-                      />
-                      <Tooltip title={copiedCode[part.index] ? "Copied!" : "Copy code"}>
-                        <IconButton
-                          size="small"
-                          onClick={() => copyCodeToClipboard(part.content, part.index)}
-                          sx={{
-                            color: isDarkMode ? '#8b949e' : '#586069',
-                            '&:hover': {
-                              color: isDarkMode ? '#fff' : '#24292e',
-                              background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-                            }
-                          }}
-                        >
-                          {copiedCode[part.index] ? <CheckCircle fontSize="small" /> : <ContentCopy fontSize="small" />}
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Box>
-
-                  {/* Code Content */}
-                  <Box sx={{ position: 'relative' }}>
-                    <SyntaxHighlighter
-                      language={part.language}
-                      style={isDarkMode ? oneDark : oneLight}
-                      customStyle={{
-                        margin: 0,
-                        padding: '16px',
-                        background: 'transparent',
-                        fontSize: '14px',
-                        lineHeight: 1.5,
-                        fontFamily: '"Fira Code", "Consolas", "Monaco", "Courier New", monospace'
-                      }}
-                      showLineNumbers={true}
-                      lineNumberStyle={{
-                        color: isDarkMode ? '#6a737d' : '#959da5',
-                        minWidth: '2.5em',
-                        paddingRight: '1em',
-                        textAlign: 'right',
-                        userSelect: 'none'
-                      }}
-                    >
-                      {part.content}
-                    </SyntaxHighlighter>
-                  </Box>
-                </Box>
-              </motion.div>
-            );
-          }
-
-          return null;
         })}
       </Box>
     </Box>

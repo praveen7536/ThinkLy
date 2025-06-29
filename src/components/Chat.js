@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   IconButton, 
@@ -33,7 +33,8 @@ import {
   Download,
   LightMode,
   DarkMode,
-  Logout
+  Logout,
+  Settings
 } from '@mui/icons-material';
 import { sendMessage as sendMessageGemini } from '../services/geminiService';
 import { sendMessageToMistral } from '../services/mistralService';
@@ -42,7 +43,7 @@ import LoadingSpinner from './LoadingSpinner';
 import ModelSelector from './ModelSelector';
 import { useChat } from '../contexts/ChatContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Chat = ({ isDarkMode, toggleTheme }) => {
   const { 
@@ -57,8 +58,6 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   } = useChat();
   
   const { logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   
   const [inputMessage, setInputMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,6 +67,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (autoScroll) {
@@ -75,6 +75,24 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, autoScroll]);
+
+  // Helper to focus input
+  const focusInput = useCallback(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  // Focus input on mount, after sending, and when tab regains focus
+  useEffect(() => {
+    focusInput();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') focusInput();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [focusInput]);
+  useEffect(() => { focusInput(); }, [isLoading, focusInput]);
 
   const handleModelChange = (modelId) => {
     console.log('Chat: handleModelChange called with:', modelId);
@@ -191,212 +209,478 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   return (
     <Box sx={{ 
       display: 'flex', 
-      height: '100%', 
+      height: '100vh', 
       overflow: 'hidden',
       flexDirection: 'column',
-      background: isDarkMode ? '#0f172a' : '#ffffff'
+      background: isDarkMode 
+        ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)'
+        : 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #f0fdf4 50%, #fef7ff 75%, #fdf2f8 100%)',
+      position: 'relative'
     }}>
-      {/* Top bar with Model Selector and Clear Chat */}
+      {/* Enhanced Background Pattern */}
       <Box
         sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: isDarkMode
+            ? 'radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)'
+            : 'radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.08) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(236, 72, 153, 0.05) 0%, transparent 50%)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+
+      {/* Enhanced Top Navigation Bar */}
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 10,
+          background: isDarkMode 
+            ? 'rgba(10, 10, 10, 0.85)' 
+            : 'rgba(240, 249, 255, 0.85)',
+          backdropFilter: 'blur(25px)',
+          borderBottom: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+          px: { xs: 2, sm: 4 },
+          py: 2.5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          px: { xs: 2, sm: 4 },
-          py: 2,
-          borderBottom: isDarkMode
-            ? '1px solid #334155'
-            : '1px solid #e2e8f0',
-          background: isDarkMode ? '#1e293b' : '#ffffff',
           flexShrink: 0,
-          minHeight: 64
+          boxShadow: isDarkMode 
+            ? '0 4px 20px rgba(0, 0, 0, 0.3)' 
+            : '0 4px 20px rgba(0, 0, 0, 0.05)'
         }}
       >
-        {/* Left side - Model Selector and Dashboard */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* Left side - Enhanced Logo and Model Selector */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1,
+              borderRadius: 2,
+              background: isDarkMode 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`
+            }}
+          >
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 900,
+                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '-0.8px',
+                fontSize: '1.8rem'
+              }}
+            >
+              ThinkLy
+            </Typography>
+          </Box>
+          
           <ModelSelector
             selectedModel={selectedModel}
             onModelChange={handleModelChange}
             isDarkMode={isDarkMode}
           />
+        </Box>
+
+        {/* Right side - Enhanced Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Tooltip title="Clear chat">
+            <IconButton
+              onClick={clearMessages}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                '&:hover': {
+                  background: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? '#fff' : '#000',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Refresh />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Settings">
+            <IconButton
+              onClick={() => setSettingsOpen(true)}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                '&:hover': {
+                  background: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? '#fff' : '#000',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Settings />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Toggle theme">
+            <IconButton
+              onClick={toggleTheme}
+              sx={{
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                '&:hover': {
+                  background: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? '#fff' : '#000',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {isDarkMode ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title="Dashboard">
-            <IconButton 
+            <IconButton
               onClick={() => navigate('/dashboard')}
               sx={{
-                color: location.pathname === '/dashboard' 
-                  ? (isDarkMode ? '#667eea' : '#4a5fd8')
-                  : (isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'),
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
                 '&:hover': {
-                  color: isDarkMode ? '#8b9df0' : '#667eea',
-                }
+                  background: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? '#fff' : '#000',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                },
+                transition: 'all 0.2s ease'
               }}
             >
               <Dashboard />
             </IconButton>
           </Tooltip>
-        </Box>
-        
-        {/* Center - Theme toggle */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Tooltip title={`Switch to ${isDarkMode ? 'Light' : 'Dark'} Mode`}>
-            <IconButton onClick={toggleTheme} size="small">
-              {isDarkMode ? <LightMode /> : <DarkMode />}
-            </IconButton>
-          </Tooltip>
-        </Box>
-        
-        {/* Right side - Clear button and Logout */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
-            onClick={clearMessages}
-            variant="outlined"
-            size="small"
-            sx={{
-              color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-              borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-              '&:hover': {
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
-                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-              }
-            }}
-          >
-            Clear
-          </Button>
-          
-          {/* Logout button */}
+
           <Tooltip title="Logout">
-            <IconButton onClick={logout} size="small">
+            <IconButton
+              onClick={logout}
+              sx={{
+                color: isDarkMode ? 'rgba(239, 68, 68, 0.8)' : 'rgba(239, 68, 68, 0.8)',
+                background: isDarkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                '&:hover': {
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
               <Logout />
             </IconButton>
           </Tooltip>
         </Box>
       </Box>
-      {/* Main chat area starts here */}
-      {/* Messages Area */}
+
+      {/* Main Chat Area */}
       <Box
         sx={{
           flex: 1,
-          minHeight: 0,
-          background: isDarkMode 
-            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%)'
-            : 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 50%, rgba(236, 72, 153, 0.15) 100%)',
-          px: { xs: 2, sm: 4 },
-          py: 3,
           overflow: 'hidden',
+          position: 'relative',
+          zIndex: 5,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          minHeight: 0 // Ensure flex child doesn't overflow
         }}
       >
+        {/* Messages Container */}
         <Box
           sx={{
             flex: 1,
-            overflowY: 'auto',
-            pb: 2,
+            overflow: 'auto',
+            px: { xs: 2, sm: 4, md: 6 },
+            py: 3,
+            minHeight: 0, // Ensure proper flex behavior
             '&::-webkit-scrollbar': {
-              width: 8
+              width: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              background: 'transparent'
+              background: 'transparent',
             },
             '&::-webkit-scrollbar-thumb': {
-              background: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-              borderRadius: 4
-            }
+              background: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              '&:hover': {
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+              },
+            },
           }}
         >
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
+            style={{ 
+              maxWidth: 900, 
+              margin: '0 auto',
+              minHeight: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: messages.length === 0 ? 'center' : 'flex-start',
+              paddingBottom: '20px' // Add bottom padding to prevent overlap
+            }}
           >
             {messages.length === 0 ? (
               <motion.div
                 variants={itemVariants}
                 style={{
+                  textAlign: 'center',
+                  padding: '4rem 2rem',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  height: '100%',
-                  textAlign: 'center',
                   minHeight: '60vh'
                 }}
               >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 2,
-                    color: isDarkMode ? 'white' : 'text.primary',
-                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                 >
-                  Welcome to ThinkLy!
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary',
-                    maxWidth: 400,
-                    lineHeight: 1.6,
-                    mb: 3
-                  }}
+                  <Box
+                    sx={{
+                      width: 140,
+                      height: 140,
+                      margin: '0 auto 2rem',
+                      background: isDarkMode 
+                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(236, 72, 153, 0.15) 100%)'
+                        : 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `3px solid ${isDarkMode ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`,
+                      boxShadow: isDarkMode 
+                        ? '0 20px 40px rgba(59, 130, 246, 0.2)' 
+                        : '0 20px 40px rgba(59, 130, 246, 0.1)',
+                      position: 'relative',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -2,
+                        left: -2,
+                        right: -2,
+                        bottom: -2,
+                        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)',
+                        borderRadius: '50%',
+                        zIndex: -1,
+                        opacity: 0.3,
+                        animation: 'pulse 2s infinite'
+                      }
+                    }}
+                  >
+                    <ChatIcon 
+                      sx={{ 
+                        fontSize: 56, 
+                        color: isDarkMode ? '#3b82f6' : '#2563eb',
+                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))'
+                      }} 
+                    />
+                  </Box>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
                 >
-                  Start a conversation with {getModelDisplayName(selectedModel)}. 
-                  Ask questions, get creative, or just chat!
-                </Typography>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 900,
+                      mb: 2,
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textAlign: 'center',
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                      letterSpacing: '-1px'
+                    }}
+                  >
+                    Welcome to ThinkLy!
+                  </Typography>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                      maxWidth: 600,
+                      lineHeight: 1.7,
+                      mb: 4,
+                      fontSize: '1.2rem',
+                      textAlign: 'center',
+                      fontWeight: 400
+                    }}
+                  >
+                    Start a conversation with {getModelDisplayName(selectedModel)}. Ask questions, get creative, or just chat! 
+                    Your AI assistant is ready to help you explore ideas and solve problems.
+                  </Typography>
+                </motion.div>
+
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      justifyContent: 'center',
+                      flexWrap: 'wrap',
+                      maxWidth: 800,
+                      mx: 'auto'
+                    }}
+                  >
+                    {[
+                      "What can you help me with?",
+                      "Tell me a joke",
+                      "Explain quantum physics",
+                      "Write a poem",
+                      "Help me code",
+                      "Plan my day"
+                    ].map((suggestion, index) => (
+                      <motion.div
+                        key={index}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Chip
+                          label={suggestion}
+                          onClick={() => {
+                            setInputMessage(suggestion);
+                            setTimeout(focusInput, 0);
+                          }}
+                          sx={{
+                            background: isDarkMode 
+                              ? 'rgba(255, 255, 255, 0.1)' 
+                              : 'rgba(255, 255, 255, 0.9)',
+                            color: isDarkMode ? '#fff' : '#000',
+                            border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                            backdropFilter: 'blur(10px)',
+                            fontSize: '0.95rem',
+                            fontWeight: 500,
+                            px: 2,
+                            py: 1,
+                            '&:hover': {
+                              background: isDarkMode 
+                                ? 'rgba(59, 130, 246, 0.3)' 
+                                : 'rgba(59, 130, 246, 0.2)',
+                              border: `2px solid ${isDarkMode ? '#3b82f6' : '#2563eb'}`,
+                              cursor: 'pointer',
+                              boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)'
+                            },
+                            transition: 'all 0.3s ease'
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </Box>
+                </motion.div>
               </motion.div>
             ) : (
-              <AnimatePresence>
-                {messages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Message
-                      message={message}
-                      isDarkMode={isDarkMode}
-                      modelName={getModelDisplayName(message.model)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              <Box sx={{ width: '100%' }}>
+                <AnimatePresence>
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={message.id}
+                      variants={itemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      transition={{ delay: index * 0.1 }}
+                      style={{ marginBottom: '16px' }} // Ensure consistent spacing
+                    >
+                      <Message
+                        message={message}
+                        isDarkMode={isDarkMode}
+                        modelName={getModelDisplayName(message.model)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </Box>
             )}
             
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  marginTop: '2rem',
+                  marginBottom: '1rem' // Add bottom margin
+                }}
               >
                 <LoadingSpinner isDarkMode={isDarkMode} />
               </motion.div>
             )}
             
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} style={{ height: '20px' }} />
           </motion.div>
         </Box>
       </Box>
 
-      {/* Input Area */}
+      {/* Enhanced Input Area - Fixed at bottom */}
       <Box
         sx={{
-          background: isDarkMode ? '#1e293b' : '#ffffff',
-          borderTop: isDarkMode
-            ? '1px solid #334155'
-            : '1px solid #e2e8f0',
-          px: { xs: 2, sm: 4 },
-          py: 3,
+          position: 'relative',
+          zIndex: 10,
+          background: isDarkMode 
+            ? 'rgba(10, 10, 10, 0.85)' 
+            : 'rgba(240, 249, 255, 0.85)',
+          backdropFilter: 'blur(25px)',
+          borderTop: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+          px: { xs: 2, sm: 4, md: 6 },
+          py: 4,
           display: 'flex',
           justifyContent: 'center',
-          flexShrink: 0
+          flexShrink: 0,
+          minHeight: 'fit-content',
+          boxShadow: isDarkMode 
+            ? '0 -4px 20px rgba(0, 0, 0, 0.3)' 
+            : '0 -4px 20px rgba(0, 0, 0, 0.05)'
         }}
       >
         <Box
@@ -406,17 +690,33 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
             gap: 2,
             maxWidth: 900,
             width: '100%',
-            background: isDarkMode ? '#334155' : '#f8fafc',
-            border: isDarkMode
-              ? '1px solid #475569'
-              : '1px solid #e2e8f0',
-            borderRadius: 12,
+            background: isDarkMode 
+              ? 'rgba(255, 255, 255, 0.08)' 
+              : 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(25px)',
+            border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'}`,
+            borderRadius: 28,
             p: 3,
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+            boxShadow: isDarkMode 
+              ? '0 25px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+              : '0 25px 50px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:focus-within': {
+              boxShadow: isDarkMode 
+                ? '0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                : '0 30px 60px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              transform: 'translateY(-3px)',
+              border: `2px solid ${isDarkMode ? 'rgba(59, 130, 246, 0.4)' : 'rgba(59, 130, 246, 0.4)'}`
+            }
           }}
         >
           <TextField
-            ref={inputRef}
+            inputRef={el => {
+              inputRef.current = el;
+              if (el) el.focus();
+            }}
+            autoFocus
+            tabIndex={-1}
             multiline
             maxRows={4}
             value={inputMessage}
@@ -428,7 +728,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
             sx={{
               flex: 1,
               '& .MuiInput-root': {
-                fontSize: '15px',
+                fontSize: '16px',
                 color: isDarkMode ? '#ffffff' : '#1a1a1a',
                 '&::before': {
                   borderBottom: 'none'
@@ -444,12 +744,24 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
                 }
               },
               '& .MuiInputBase-input': {
-                padding: '8px 0',
+                padding: '16px 20px',
+                borderRadius: 24,
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.6)',
+                border: `2px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'}`,
+                fontSize: '16px',
+                fontWeight: 400,
                 '&::placeholder': {
-                  color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
                   opacity: 1,
-                  fontSize: '15px'
-                }
+                  fontSize: '16px',
+                  fontWeight: 400
+                },
+                '&:focus': {
+                  background: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.9)',
+                  border: `2px solid ${isDarkMode ? '#3b82f6' : '#2563eb'}`,
+                  boxShadow: `0 0 0 4px ${isDarkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.2)'}`
+                },
+                transition: 'all 0.3s ease'
               }
             }}
           />
@@ -460,39 +772,49 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
               gap: 1
             }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
               <Button
                 onClick={sendMessageHandler}
                 disabled={!inputMessage.trim() || isLoading}
                 variant="contained"
                 sx={{
-                  minWidth: 48,
-                  height: 48,
-                  borderRadius: 8,
+                  minWidth: 60,
+                  height: 60,
+                  borderRadius: 24,
                   background: inputMessage.trim() && !isLoading
-                    ? '#3b82f6'
+                    ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)'
                     : isDarkMode 
-                      ? '#475569' 
-                      : '#e2e8f0',
+                      ? 'rgba(255, 255, 255, 0.1)' 
+                      : 'rgba(0, 0, 0, 0.1)',
                   color: inputMessage.trim() && !isLoading ? 'white' : isDarkMode ? '#94a3b8' : '#64748b',
-                  boxShadow: 'none',
+                  boxShadow: inputMessage.trim() && !isLoading
+                    ? '0 12px 32px rgba(59, 130, 246, 0.4), 0 4px 8px rgba(147, 51, 234, 0.3)'
+                    : 'none',
+                  border: inputMessage.trim() && !isLoading
+                    ? '2px solid rgba(255, 255, 255, 0.2)'
+                    : '2px solid transparent',
                   '&:hover': {
                     background: inputMessage.trim() && !isLoading
-                      ? '#2563eb'
+                      ? 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%)'
                       : isDarkMode 
-                        ? '#64748b' 
-                        : '#cbd5e1',
+                        ? 'rgba(255, 255, 255, 0.15)' 
+                        : 'rgba(0, 0, 0, 0.15)',
                     boxShadow: inputMessage.trim() && !isLoading
-                      ? '0 4px 12px rgba(59, 130, 246, 0.3)'
+                      ? '0 16px 40px rgba(59, 130, 246, 0.5), 0 6px 12px rgba(147, 51, 234, 0.4)'
                       : 'none',
-                    transform: inputMessage.trim() && !isLoading ? 'translateY(-1px)' : 'none'
+                    transform: inputMessage.trim() && !isLoading ? 'translateY(-2px)' : 'none'
                   },
                   '&:disabled': {
-                    background: isDarkMode ? '#334155' : '#f1f5f9',
+                    background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                     color: isDarkMode ? '#64748b' : '#94a3b8',
-                    boxShadow: 'none'
+                    boxShadow: 'none',
+                    border: '2px solid transparent'
                   },
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 {isLoading ? (
@@ -500,10 +822,10 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   >
-                    <Refresh sx={{ fontSize: 18 }} />
+                    <Refresh sx={{ fontSize: 24 }} />
                   </motion.div>
                 ) : (
-                  <Send sx={{ fontSize: 18 }} />
+                  <Send sx={{ fontSize: 24 }} />
                 )}
               </Button>
             </motion.div>
@@ -677,4 +999,4 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   );
 };
 
-export default Chat; 
+export default Chat;
